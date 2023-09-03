@@ -1,3 +1,4 @@
+from numpy import append
 import requests
 import urllib
 import pandas as pd
@@ -52,13 +53,11 @@ def parse_results(response):
     for result in results:
 
         item = {
-            'title': result.find(css_identifier_title, first=True).text,
-            'link': result.find(css_identifier_link, first=True).attrs['href'],
-            'text': result.find(css_identifier_text, first=True).text
+            'title': result.find(css_identifier_title, first=True).text, #title
+            'link': result.find(css_identifier_link, first=True).attrs['href'], #link
+            'text': result.find(css_identifier_text, first=True).text #text
         }
-        
         output.append(item)
-        
     return output
 
 
@@ -66,9 +65,21 @@ def google_search(query):
     response = get_results(query)
     return parse_results(response)
 
+def to_dataframe(response):
+    result = {
+        'title' : [],
+        'link' : [],
+        'text': []
+    }
+    for item in response:
+        result['title'] = append(result['title'], item['title'])
+        result['link'] = append(result['link'], item['link'])
+        result['text'] = append(result['text'], item['text'])
+    return pd.DataFrame(result)
 
-print(google_search("Concrete suppliers in gauteng"))
+def write_to_csv(df): 
+    return df.to_csv("temp.csv", header=True, sep=',')
 
-print("\n\n\n\n\n\n\n")
+res = google_search("Concrete suppliers in gauteng")
 
-print(scrape_google("Concrete suppliers in gauteng"))
+write_to_csv(to_dataframe(res))
